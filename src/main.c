@@ -1,109 +1,13 @@
 #include <pebble.h>
+#include <battery.h>
+#include <weather.h>
+#include <pedometer.h>
+#include <bluetooth.h>
 
 static Window *s_main_window;
 static TextLayer *s_date_layer;
 static TextLayer *s_time_layer;
-static TextLayer *s_weather_layer;
-static GFont s_weather_font;
-static GFont s_battery_font;
-static int s_battery_level;
-static TextLayer *s_battery_layer;
-static BitmapLayer *s_bt_icon_layer;
-static GBitmap *s_bt_icon_bitmap;
-static TextLayer *s_step_layer;
-static GFont s_step_font;
-const uint32_t s_samples_per_update = 5;
-static uint16_t s_step_gForce;
-const uint16_t s_step_min_diff = 400;
-const uint16_t s_step_timeStamp_diff_min = 150;
-const uint16_t s_step_threshold = 550;
-const AccelSamplingRate s_acelSamplingRate = ACCEL_SAMPLING_10HZ;
-uint32_t s_step_key = 1;
-static time_t s_timeStamp;
-static int s_timeStamp_diff;
-static TextLayer *s_forecastHr3_layer;
-static TextLayer *s_forecastDay2_layer;
-static TextLayer *s_forecastDay3_layer;
-static TextLayer *s_forecastCity_layer;
-static uint16_t s_forecast_check;
-
-static void update_step(int steps) {
   
-  int step_count = persist_read_int(s_step_key);
-    
-  // Check to see if step variable has been initialized
-  step_count += steps; //increment step
-  
-  persist_write_int(s_step_key, step_count);
-  
-  static char s_buffer[15];
-  
-  snprintf(s_buffer, sizeof(s_buffer), "Steps: %d", step_count);
-  
-  // Display this time on the TextLayer
-  text_layer_set_text(s_step_layer, s_buffer);
-}
-
-static void accel_data_handler(AccelData *data, uint32_t num_samples) {
-  
-  // Read first sample gForce
-  int16_t gForce = data[0].y;
-  bool did_vibrate = data[0].did_vibrate;
-  time_t timeStamp = data[0].timestamp;
-  
-  //default number of credited steps per event
-  int steps = 1;
-  
-  //initialize static timeStamp
-  if (!s_timeStamp) {
-    s_timeStamp = timeStamp;
-  }
-  
-  s_timeStamp_diff = timeStamp - s_timeStamp;
-  
-  //Count as a step if difference between last stored value and current value exceed minimum difference
-  //and current gForce above threshold
-  //and watch did not vibrate
-  //and time different between previous sample more than 200 millisecond
-  if ( abs(gForce - s_step_gForce) > s_step_min_diff
-      && abs(gForce) > s_step_threshold 
-     && !did_vibrate
-     && s_timeStamp_diff > s_step_timeStamp_diff_min) 
-  {
-    update_step(steps); 
-    s_timeStamp = timeStamp;
-  }
-  
-  //store new current value
-  s_step_gForce = gForce;
-
-  
-}
-
-static void bluetooth_callback(bool connected) {
-  // Show icon if disconnected
-  layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), connected);
-
-  if(!connected) {
-    // Issue a vibrating alert
-    vibes_double_pulse();
-  }
-}
-
-  
-static void battery_callback(BatteryChargeState state) {
-  // Record the new battery level
-  
-  s_battery_level = state.charge_percent;
-  
-  static char s_buffer[5];
-  snprintf(s_buffer, sizeof(s_buffer), "%d%%", s_battery_level);
-  
-  // Display this time on the TextLayer
-  text_layer_set_text(s_battery_layer, s_buffer);
-  
-}
-
 static void update_time() {
   // Get a tm structure
   time_t temp = time(NULL);
@@ -133,7 +37,6 @@ static void update_date() {
   text_layer_set_text(s_date_layer, s_buffer);
 }
 
-
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
   update_date();
@@ -144,7 +47,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
     persist_write_int(s_step_key, 0);
   }
   
-  //store the previous minute value when forecast was first checked
+  //Prevent duplicate weather api call when watchface initially loads by moving forecast check minute marker by one minute
   if (!s_forecast_check)
   {
     if (tick_time->tm_min == 0){
@@ -169,6 +72,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   }
   
 }
+
 
 static void main_window_load(Window *window) {
   // Get information about the Window
@@ -379,113 +283,6 @@ static void main_window_unload(Window *window) {
   // Destory ForecastCity Layer
   text_layer_destroy(s_forecastCity_layer);
   
-}
-
-static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
-
-  // Store incoming information
-  static char temperature_buffer[8];
-  static char conditions_buffer[32];
-  static char weather_layer_buffer[32];
-  static char forecastHr3_layer_buffer[32];
-  static char forecastHr3_temperature_buffer[8];
-  static char forecastHr3_conditions_buffer[32];
-  static char forecastDay2_layer_buffer[32];
-  static char forecastDay2_temperature_buffer[8];
-  static char forecastDay2_conditions_buffer[32];
-  static char forecastDay3_layer_buffer[32];
-  static char forecastDay3_temperature_buffer[8];
-  static char forecastDay3_conditions_buffer[32];
-  static char forecastCity_layer_buffer[32];
-  static char forecastCity_buffer[32];
-  
-  static char time_buffer[8];
-  time_t temp = time(NULL);
-  struct tm *tick_time = localtime(&temp);
-  
-  // Read Weather tuples for data
-  Tuple *temp_tuple = dict_find(iterator, MESSAGE_KEY_TEMPERATURE);
-  Tuple *conditions_tuple = dict_find(iterator, MESSAGE_KEY_CONDITIONS);
-
-  // If all Weather data is available, use it
-  if(temp_tuple && conditions_tuple) {
-    snprintf(temperature_buffer, sizeof(temperature_buffer), "%dF", (int)temp_tuple->value->int32);
-    snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tuple->value->cstring);
-    
-    //Set time weather was last successfully update
-    strftime(time_buffer, sizeof(time_buffer), clock_is_24h_style() ?
-                                          "%H:%M" : "%I:%M", tick_time);
-    
-    //Update weather layer
-    snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s @ %s", temperature_buffer, conditions_buffer, time_buffer);
-    text_layer_set_text(s_weather_layer, weather_layer_buffer);
-  }
-  
-  // Read ForeCast tuples for data
-  Tuple *forecastHr3_temp_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_HR3_TEMPERATURE);
-  Tuple *forecastHr3_conditions_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_HR3_CONDITIONS);
-
-  // If all forecast data is available, use it
-  if(forecastHr3_temp_tuple && forecastHr3_conditions_tuple) {
-    snprintf(forecastHr3_temperature_buffer, sizeof(forecastHr3_temperature_buffer), "%dF", (int)forecastHr3_temp_tuple->value->int32);
-    snprintf(forecastHr3_conditions_buffer, sizeof(forecastHr3_conditions_buffer), "%s", forecastHr3_conditions_tuple->value->cstring);
-    
-    //Update forecast hour 3 layer
-    snprintf(forecastHr3_layer_buffer, sizeof(forecastHr3_layer_buffer), "%s, %s in 4 hrs", forecastHr3_temperature_buffer, forecastHr3_conditions_buffer);
-    text_layer_set_text(s_forecastHr3_layer, forecastHr3_layer_buffer);
-  }
-  
-  // Read ForeCast tuples for data
-  Tuple *forecastDay2_temp_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_DAY2_TEMPERATURE);
-  Tuple *forecastDay2_conditions_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_DAY2_CONDITIONS);
-
-  // If all forecast data is available, use it
-  if(forecastDay2_temp_tuple && forecastDay2_conditions_tuple) {
-    snprintf(forecastDay2_temperature_buffer, sizeof(forecastDay2_temperature_buffer), "%dF", (int)forecastDay2_temp_tuple->value->int32);
-    snprintf(forecastDay2_conditions_buffer, sizeof(forecastDay2_conditions_buffer), "%s", forecastDay2_conditions_tuple->value->cstring);
-    
-    //Update forecast hour 3 layer
-    snprintf(forecastDay2_layer_buffer, sizeof(forecastDay2_layer_buffer), "%s %s nxt morning", forecastDay2_conditions_buffer, forecastDay2_temperature_buffer);
-    text_layer_set_text(s_forecastDay2_layer, forecastDay2_layer_buffer);
-  }
-  
-  // Read ForeCast Day3 tuples for data
-  Tuple *forecastDay3_temp_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_DAY3_TEMPERATURE);
-  Tuple *forecastDay3_conditions_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_DAY3_CONDITIONS);
-  
-  // If all forecast data is available, use it
-  if(forecastDay3_temp_tuple && forecastDay3_conditions_tuple) {
-    snprintf(forecastDay3_temperature_buffer, sizeof(forecastDay3_temperature_buffer), "%dF", (int)forecastDay3_temp_tuple->value->int32);
-    snprintf(forecastDay3_conditions_buffer, sizeof(forecastDay3_conditions_buffer), "%s", forecastDay3_conditions_tuple->value->cstring);
-    
-    //Update forecast hour 3 layer
-    snprintf(forecastDay3_layer_buffer, sizeof(forecastDay3_layer_buffer), "%s %s nxt evening", forecastDay3_conditions_buffer, forecastDay3_temperature_buffer);
-    text_layer_set_text(s_forecastDay3_layer, forecastDay3_layer_buffer);
-  }
-
-  // Read ForeCast City tuples for data
-  Tuple *forecastCity_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_CITY);
-  
-  // If all forecast data is available, use it
-  if(forecastCity_tuple) {
-    snprintf(forecastCity_buffer, sizeof(forecastCity_buffer), "%s", forecastCity_tuple->value->cstring);
-    
-    //Update forecast hour 3 layer
-    snprintf(forecastCity_layer_buffer, sizeof(forecastCity_layer_buffer), "Forecast for %s", forecastCity_buffer);
-    text_layer_set_text(s_forecastCity_layer, forecastCity_layer_buffer);
-  }
-}
-
-static void inbox_dropped_callback(AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
-}
-
-static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
-}
-
-static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
 }
 
 
