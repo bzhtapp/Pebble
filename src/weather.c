@@ -4,8 +4,8 @@ static TextLayer *s_forecastHr3_layer;
 static TextLayer *s_forecastDay2_layer;
 static TextLayer *s_forecastDay3_layer;
 static TextLayer *s_forecastCity_layer;
-static uint16_t s_forecast_check;
 static TextLayer *s_weather_layer;
+static uint16_t s_forecast_check;
 static GFont s_weather_font;
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {

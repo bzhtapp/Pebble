@@ -1,8 +1,8 @@
 #include <pebble.h>
 
-static GFont s_battery_font;
 static int s_battery_level;
 static TextLayer *s_battery_layer;
+static GFont s_battery_font;
 
 static void battery_callback(BatteryChargeState state) {
   // Record the new battery level
