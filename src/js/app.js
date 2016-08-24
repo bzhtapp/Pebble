@@ -7,6 +7,8 @@ var xhrRequest = function (url, type, callback) {
   xhr.send();
 };
 
+//test 2
+
 function locationSuccess(pos) {
   
   //OpenWeatherMap personal free API key
