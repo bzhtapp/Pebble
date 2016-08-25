@@ -7,6 +7,3 @@ const AccelSamplingRate s_acelSamplingRate = ACCEL_SAMPLING_10HZ;
 
 static void update_step(int steps);
 static void accel_data_handler(AccelData *data, uint32_t num_samples);
-
-
-
