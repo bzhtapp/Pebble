@@ -44,7 +44,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
                                           "%H:%M" : "%I:%M", tick_time);
     
     //Update weather layer
-    snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s @ %s", temperature_buffer, conditions_buffer, time_buffer);
+    snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s %s", temperature_buffer, conditions_buffer, time_buffer);
     text_layer_set_text(s_weather_layer, weather_layer_buffer);
   }
   
@@ -58,7 +58,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     snprintf(forecastHr3_conditions_buffer, sizeof(forecastHr3_conditions_buffer), "%s", forecastHr3_conditions_tuple->value->cstring);
     
     //Update forecast hour 3 layer
-    snprintf(forecastHr3_layer_buffer, sizeof(forecastHr3_layer_buffer), "%s, %s in 4 hrs", forecastHr3_temperature_buffer, forecastHr3_conditions_buffer);
+    snprintf(forecastHr3_layer_buffer, sizeof(forecastHr3_layer_buffer), "%s %s in 4hr", forecastHr3_temperature_buffer, forecastHr3_conditions_buffer);
     text_layer_set_text(s_forecastHr3_layer, forecastHr3_layer_buffer);
   }
   
@@ -72,7 +72,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     snprintf(forecastDay2_conditions_buffer, sizeof(forecastDay2_conditions_buffer), "%s", forecastDay2_conditions_tuple->value->cstring);
     
     //Update forecast hour 3 layer
-    snprintf(forecastDay2_layer_buffer, sizeof(forecastDay2_layer_buffer), "%s %s nxt morning", forecastDay2_conditions_buffer, forecastDay2_temperature_buffer);
+    snprintf(forecastDay2_layer_buffer, sizeof(forecastDay2_layer_buffer), "%s %s tmrw @7", forecastDay2_conditions_buffer, forecastDay2_temperature_buffer);
     text_layer_set_text(s_forecastDay2_layer, forecastDay2_layer_buffer);
   }
   
@@ -86,7 +86,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     snprintf(forecastDay3_conditions_buffer, sizeof(forecastDay3_conditions_buffer), "%s", forecastDay3_conditions_tuple->value->cstring);
     
     //Update forecast hour 3 layer
-    snprintf(forecastDay3_layer_buffer, sizeof(forecastDay3_layer_buffer), "%s %s nxt evening", forecastDay3_conditions_buffer, forecastDay3_temperature_buffer);
+    snprintf(forecastDay3_layer_buffer, sizeof(forecastDay3_layer_buffer), "%s %s tmrw @5", forecastDay3_conditions_buffer, forecastDay3_temperature_buffer);
     text_layer_set_text(s_forecastDay3_layer, forecastDay3_layer_buffer);
   }
 
@@ -98,7 +98,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     snprintf(forecastCity_buffer, sizeof(forecastCity_buffer), "%s", forecastCity_tuple->value->cstring);
     
     //Update forecast hour 3 layer
-    snprintf(forecastCity_layer_buffer, sizeof(forecastCity_layer_buffer), "Forecast for %s", forecastCity_buffer);
+    snprintf(forecastCity_layer_buffer, sizeof(forecastCity_layer_buffer), "Forecast: %s", forecastCity_buffer);
     text_layer_set_text(s_forecastCity_layer, forecastCity_layer_buffer);
   }
 }

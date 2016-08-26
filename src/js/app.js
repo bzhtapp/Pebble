@@ -34,7 +34,7 @@ function locationSuccess(pos) {
       console.log('Temperature is ' + temperature);
 
       // Conditions
-      var conditions = json.weather[0].main;      
+      var conditions = json.weather[0].description;      
       console.log('Conditions are ' + conditions);
       
       // City

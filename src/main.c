@@ -219,7 +219,7 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(s_weather_layer, GColorWhite);
   text_layer_set_text_color(s_weather_layer, GColorBlack);
   text_layer_set_text_alignment(s_weather_layer, GTextAlignmentCenter);
-  text_layer_set_text(s_weather_layer, "Loading Weather ...");
+  text_layer_set_text(s_weather_layer, "Loading Weather..");
   
   // Create second custom font, apply it and add to Window
   s_weather_font = fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD);
@@ -240,8 +240,8 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(s_forecastHr3_layer, GColorWhite);
   text_layer_set_text_color(s_forecastHr3_layer, GColorBlack);
   text_layer_set_text_alignment(s_forecastHr3_layer, GTextAlignmentCenter);
-  text_layer_set_text(s_forecastHr3_layer, "Loading 3-hr Forecast...");
-  text_layer_set_font(s_forecastHr3_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  text_layer_set_text(s_forecastHr3_layer, "Loading 4-hr Forecast..");
+  text_layer_set_font(s_forecastHr3_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
   
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_forecastHr3_layer));
   currentY += heightforecastHr3;
@@ -257,8 +257,8 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(s_forecastDay2_layer, GColorWhite);
   text_layer_set_text_color(s_forecastDay2_layer, GColorBlack);
   text_layer_set_text_alignment(s_forecastDay2_layer, GTextAlignmentCenter);
-  text_layer_set_text(s_forecastDay2_layer, "Loading morning forecast...");
-  text_layer_set_font(s_forecastDay2_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  text_layer_set_text(s_forecastDay2_layer, "Loading morning forecast..");
+  text_layer_set_font(s_forecastDay2_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
   
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_forecastDay2_layer));
   currentY += heightforecastDay2;
@@ -272,8 +272,8 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(s_forecastDay3_layer, GColorWhite);
   text_layer_set_text_color(s_forecastDay3_layer, GColorBlack);
   text_layer_set_text_alignment(s_forecastDay3_layer, GTextAlignmentCenter);
-  text_layer_set_text(s_forecastDay3_layer, "Loading evening forecast...");
-  text_layer_set_font(s_forecastDay3_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  text_layer_set_text(s_forecastDay3_layer, "Loading evening forecast..");
+  text_layer_set_font(s_forecastDay3_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
   
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_forecastDay3_layer));
   currentY += heightforecastDay3;
@@ -286,8 +286,8 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(s_forecastCity_layer, GColorWhite);
   text_layer_set_text_color(s_forecastCity_layer, GColorBlack);
   text_layer_set_text_alignment(s_forecastCity_layer, GTextAlignmentCenter);
-  text_layer_set_text(s_forecastCity_layer, "Loading city...");
-  text_layer_set_font(s_forecastCity_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  text_layer_set_text(s_forecastCity_layer, "Loading city..");
+  text_layer_set_font(s_forecastCity_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
   
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_forecastCity_layer));
   currentY += heightforecastCity;
@@ -396,7 +396,7 @@ static void init() {
 static void deinit() {
   
   //launch background work process before this window is closed
-  AppWorkerResult result = app_worker_launch();
+  app_worker_launch();
   
   // Destroy Window
   window_destroy(s_main_window);
