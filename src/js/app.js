@@ -68,7 +68,7 @@ function locationSuccess(pos) {
       //get forecast 3 to 6 hours from now
       var tempHr3 = Math.round(json.list[0].main.temp * 9.00 / 5.00 - 459.67);
       console.log('Hr3 temp is ' + tempHr3);
-      var conditionHr3 = json.list[0].weather[0].description;
+      var conditionHr3 = json.list[0].weather[0].main;
       console.log('Hr3 condition is ' + conditionHr3);
 
       var foundTomorrowMorning = false;
@@ -91,7 +91,7 @@ function locationSuccess(pos) {
         //get morning time, feed is in 3 hour increments so get feed that is within 2 hours of target hour
         if ( Math.abs(morningHour - forecastHour) < 2) {
             foundTomorrowMorning = true;
-            conditionDay2 = json.list[cnt].weather[0].description;
+            conditionDay2 = json.list[cnt].weather[0].main;
             tempDay2 = Math.round(json.list[cnt].main.temp * 9.00 / 5.00 - 459.67);
             break;
           }
@@ -117,7 +117,7 @@ function locationSuccess(pos) {
         //get morning time, feed is in 3 hour increments so get feed that is within 2 hours of target hour
         if ( Math.abs(eveningHour - forecastHour) < 2) {
             foundTomorrowEvening = true;
-            conditionDay3 = json.list[cnt].weather[0].description;
+            conditionDay3 = json.list[cnt].weather[0].main;
             tempDay3 = Math.round(json.list[cnt].main.temp * 9.00 / 5.00 - 459.67);
             break;
           }

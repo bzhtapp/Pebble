@@ -11,6 +11,7 @@ static TextLayer *s_time_layer;
 static TextLayer *s_step_layer;
 static GFont s_step_font;
 static uint16_t s_step_gForce;
+const uint16_t s_forecast_freq = 30;
 
 static void update_step(int steps) {
   
@@ -102,7 +103,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   }
   
   // Get weather update every half hour from the last check
-  if( tick_time->tm_min % 30 == s_forecast_check % 30) { 
+  if( tick_time->tm_min % s_forecast_freq == s_forecast_check % s_forecast_freq) { 
     // Begin dictionary
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
@@ -211,7 +212,7 @@ static void main_window_load(Window *window) {
   /*** End Time Row ***/
 
   // Create weather Layer
-  int heightWeather = 14;
+  int heightWeather = 16;
   s_weather_layer = text_layer_create(
     GRect(0, currentY, bounds.size.w, heightWeather));
 

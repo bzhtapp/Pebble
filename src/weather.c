@@ -8,6 +8,7 @@ static TextLayer *s_weather_layer;
 static uint16_t s_forecast_check;
 static GFont s_weather_font;
 
+
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 
   // Store incoming information
@@ -39,12 +40,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     snprintf(temperature_buffer, sizeof(temperature_buffer), "%dF", (int)temp_tuple->value->int32);
     snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tuple->value->cstring);
     
-    //Set time weather was last successfully update
-    strftime(time_buffer, sizeof(time_buffer), clock_is_24h_style() ?
-                                          "%H:%M" : "%I:%M", tick_time);
-    
     //Update weather layer
-    snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s %s", temperature_buffer, conditions_buffer, time_buffer);
+    snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s", conditions_buffer, temperature_buffer);
     text_layer_set_text(s_weather_layer, weather_layer_buffer);
   }
   
@@ -58,7 +55,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     snprintf(forecastHr3_conditions_buffer, sizeof(forecastHr3_conditions_buffer), "%s", forecastHr3_conditions_tuple->value->cstring);
     
     //Update forecast hour 3 layer
-    snprintf(forecastHr3_layer_buffer, sizeof(forecastHr3_layer_buffer), "%s %s in 4hr", forecastHr3_temperature_buffer, forecastHr3_conditions_buffer);
+    snprintf(forecastHr3_layer_buffer, sizeof(forecastHr3_layer_buffer), "%s %s in 4hr", forecastHr3_conditions_buffer, forecastHr3_temperature_buffer );
     text_layer_set_text(s_forecastHr3_layer, forecastHr3_layer_buffer);
   }
   
@@ -72,7 +69,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     snprintf(forecastDay2_conditions_buffer, sizeof(forecastDay2_conditions_buffer), "%s", forecastDay2_conditions_tuple->value->cstring);
     
     //Update forecast hour 3 layer
-    snprintf(forecastDay2_layer_buffer, sizeof(forecastDay2_layer_buffer), "%s %s tmrw @7", forecastDay2_conditions_buffer, forecastDay2_temperature_buffer);
+    snprintf(forecastDay2_layer_buffer, sizeof(forecastDay2_layer_buffer), "%s %s @7 tmrw", forecastDay2_conditions_buffer, forecastDay2_temperature_buffer);
     text_layer_set_text(s_forecastDay2_layer, forecastDay2_layer_buffer);
   }
   
@@ -86,19 +83,23 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     snprintf(forecastDay3_conditions_buffer, sizeof(forecastDay3_conditions_buffer), "%s", forecastDay3_conditions_tuple->value->cstring);
     
     //Update forecast hour 3 layer
-    snprintf(forecastDay3_layer_buffer, sizeof(forecastDay3_layer_buffer), "%s %s tmrw @5", forecastDay3_conditions_buffer, forecastDay3_temperature_buffer);
+    snprintf(forecastDay3_layer_buffer, sizeof(forecastDay3_layer_buffer), "%s %s @%d tmrw", forecastDay3_conditions_buffer, forecastDay3_temperature_buffer, clock_is_24h_style() ? 17: 5);
     text_layer_set_text(s_forecastDay3_layer, forecastDay3_layer_buffer);
   }
 
   // Read ForeCast City tuples for data
-  Tuple *forecastCity_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_CITY);
+  Tuple *forecastCity_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_CITY); 
+  
+  //Set time weather was last successfully update
+    strftime(time_buffer, sizeof(time_buffer), clock_is_24h_style() ?
+                                          "%H:%M" : "%I:%M", tick_time);
   
   // If all forecast data is available, use it
   if(forecastCity_tuple) {
     snprintf(forecastCity_buffer, sizeof(forecastCity_buffer), "%s", forecastCity_tuple->value->cstring);
     
     //Update forecast hour 3 layer
-    snprintf(forecastCity_layer_buffer, sizeof(forecastCity_layer_buffer), "Forecast: %s", forecastCity_buffer);
+    snprintf(forecastCity_layer_buffer, sizeof(forecastCity_layer_buffer), "%s @%s", forecastCity_buffer, time_buffer);
     text_layer_set_text(s_forecastCity_layer, forecastCity_layer_buffer);
   }
 }
